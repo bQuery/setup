@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { execSync } from 'child_process';
 import * as path from 'path';
+import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { generateProject } from './generators/index.js';
 import { runPrompts } from './prompts.js';
@@ -16,6 +17,19 @@ function getInstallCommand(pm: PackageManager): string {
       return 'bun install';
     default:
       return 'npm install';
+  }
+}
+
+function getDevCommand(pm: PackageManager): string {
+  switch (pm) {
+    case 'yarn':
+      return 'yarn dev';
+    case 'pnpm':
+      return 'pnpm dev';
+    case 'bun':
+      return 'bun dev';
+    default:
+      return 'npm run dev';
   }
 }
 
@@ -45,7 +59,7 @@ export function createCli(): Command {
 
         const useDefaults = opts.yes === true;
 
-        if (useDefaults || (projectName !== undefined && opts.yes === true)) {
+        if (useDefaults) {
           // Non-interactive mode: build options from CLI args
           const template = (opts.template as SetupTemplate) ?? 'full';
           const runtime = (opts.runtime as Runtime) ?? 'node';
@@ -72,44 +86,61 @@ export function createCli(): Command {
             install: (opts.install as boolean) ?? true,
           };
         } else {
-          // Interactive mode
+          // Interactive mode — guided onboarding
           options = await runPrompts(projectName);
         }
 
         const targetDir = path.resolve(process.cwd(), options.projectName);
 
-        console.log(pc.cyan(`\nCreating project in ${targetDir}...`));
-        await generateProject(options, targetDir);
-        console.log(pc.green('✓ Project files generated'));
+        // Generate project with spinner
+        const spin = p.spinner();
+        spin.start('Scaffolding project...');
 
+        await generateProject(options, targetDir);
+
+        spin.stop('Project files generated');
+
+        // Git init
         if (options.git) {
+          const gitSpin = p.spinner();
+          gitSpin.start('Initializing git repository...');
           try {
             execSync('git init', { cwd: targetDir, stdio: 'pipe' });
-            console.log(pc.green('✓ Git repository initialized'));
+            gitSpin.stop('Git repository initialized');
           } catch {
-            console.log(pc.yellow('⚠ Could not initialize git repository'));
+            gitSpin.stop(pc.yellow('Could not initialize git repository'));
           }
         }
 
+        // Install deps
         if (options.install) {
+          const installCmd = getInstallCommand(options.packageManager);
+          const installSpin = p.spinner();
+          installSpin.start(`Running ${installCmd}...`);
           try {
-            const installCmd = getInstallCommand(options.packageManager);
-            console.log(pc.cyan(`\nRunning ${installCmd}...`));
-            execSync(installCmd, { cwd: targetDir, stdio: 'inherit' });
-            console.log(pc.green('✓ Dependencies installed'));
-          } catch {
-            console.log(pc.yellow('⚠ Could not install dependencies. Run them manually.'));
+            execSync(installCmd, { cwd: targetDir, stdio: 'pipe' });
+            installSpin.stop('Dependencies installed');
+          } catch (installErr) {
+            installSpin.stop(pc.yellow('Could not install dependencies'));
+            const msg = installErr instanceof Error ? installErr.message : String(installErr);
+            p.log.warn(msg);
+            p.log.info('You can install dependencies manually after setup.');
           }
         }
 
-        console.log(pc.green(`\n✓ Project ${options.projectName} created successfully!`));
-        console.log(pc.dim(`\nNext steps:`));
-        console.log(pc.dim(`  cd ${options.projectName}`));
+        // Final next-steps
+        const nextSteps: string[] = [];
+        nextSteps.push(`cd ${options.projectName}`);
         if (!options.install) {
-          console.log(pc.dim(`  ${getInstallCommand(options.packageManager)}`));
+          nextSteps.push(getInstallCommand(options.packageManager));
         }
+        nextSteps.push(getDevCommand(options.packageManager));
+
+        p.note(nextSteps.map((s) => pc.cyan(s)).join('\n'), 'Next steps');
+        p.outro(pc.green(`You're all set! Happy hacking 🚀`));
       } catch (err) {
-        console.error(pc.red('Error creating project:'), err);
+        p.cancel('Error creating project');
+        console.error(err);
         process.exit(1);
       }
     });
