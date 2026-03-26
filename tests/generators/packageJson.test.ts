@@ -88,6 +88,8 @@ describe('generatePackageJson', () => {
     const opts: SetupOptions = { ...base, bundler: 'none', tailwind: true };
     const pkg = generatePackageJson(opts);
     expect(pkg.type).toBe('module');
+    const scripts = pkg.scripts as Record<string, string>;
+    expect(scripts.dev).toBe('ts-node --esm src/index.ts');
   });
 
   it('minimal template + Node', () => {

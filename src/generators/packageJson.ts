@@ -36,7 +36,7 @@ export function generatePackageJson(options: SetupOptions): Record<string, unkno
       scripts.lint = 'tsc --noEmit';
     } else {
       // Node without Vite (full or minimal)
-      scripts.dev = 'ts-node src/index.ts';
+      scripts.dev = tailwind ? 'ts-node --esm src/index.ts' : 'ts-node src/index.ts';
       scripts.build = 'tsc';
       scripts.start = 'node dist/index.js';
       scripts.lint = 'tsc --noEmit';
