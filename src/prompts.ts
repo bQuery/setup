@@ -53,15 +53,14 @@ export async function runPrompts(initialName?: string): Promise<SetupOptions> {
   p.intro(pc.inverse(' create-bquery '));
 
   // Step 1: Project name
-  const projectName = initialName
-    ? initialName
-    : assertNotCancelled(
-        await p.text({
-          message: 'What is your project name?',
-          placeholder: 'my-bquery-app',
-          validate: (v) => getProjectNameValidationError(v),
-        }),
-      );
+  const projectName = assertNotCancelled(
+    await p.text({
+      message: 'What is your project name?',
+      placeholder: 'my-bquery-app',
+      initialValue: initialName,
+      validate: (v) => getProjectNameValidationError(v),
+    }),
+  );
 
   // Step 2: Template
   const template = assertNotCancelled(

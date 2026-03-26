@@ -52,13 +52,48 @@ function getCommandFailureDetails(error: unknown): string {
   return details ?? error.message;
 }
 
-async function ensureTargetDirReady(projectName: string, force: boolean): Promise<string> {
+function normalizeOptionalBoolean(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
+}
+
+export function resolveNonInteractiveOptions(projectName: string | undefined, opts: Record<string, unknown>): SetupOptions {
+  const template = (opts.template as SetupTemplate) ?? 'full';
+  const runtime = (opts.runtime as Runtime) ?? 'node';
+  const packageManager = (opts.pm as PackageManager) ?? 'npm';
+  const vite = normalizeOptionalBoolean(opts.vite);
+  const tailwind = normalizeOptionalBoolean(opts.tailwind);
+  const git = normalizeOptionalBoolean(opts.git);
+  const install = normalizeOptionalBoolean(opts.install);
+
+  let bundler: Bundler;
+  if (runtime !== 'node') {
+    bundler = 'none';
+  } else if (vite === true) {
+    bundler = 'vite';
+  } else if (vite === false) {
+    bundler = 'none';
+  } else {
+    bundler = template === 'full' ? 'vite' : 'none';
+  }
+
+  return {
+    projectName: projectName ?? 'my-bquery-app',
+    template,
+    runtime,
+    packageManager,
+    bundler,
+    tailwind: tailwind ?? false,
+    git: git ?? true,
+    install: install ?? true,
+  };
+}
+
+export async function ensureTargetDirReady(projectName: string, force: boolean, cwd = process.cwd()): Promise<string> {
   const validationError = getProjectNameValidationError(projectName);
   if (validationError) {
     throw new Error(validationError);
   }
 
-  const cwd = process.cwd();
   const targetDir = path.resolve(cwd, projectName);
 
   if (path.relative(cwd, targetDir).startsWith('..')) {
@@ -67,6 +102,11 @@ async function ensureTargetDirReady(projectName: string, force: boolean): Promis
 
   if (!(await fse.pathExists(targetDir))) {
     return targetDir;
+  }
+
+  const linkStat = await fse.lstat(targetDir);
+  if (linkStat.isSymbolicLink()) {
+    throw new Error(`Target path must not be a symbolic link: ${projectName}`);
   }
 
   const stat = await fse.stat(targetDir);
@@ -121,33 +161,7 @@ export function createCli(): Command {
         const useDefaults = opts.yes === true;
 
         if (useDefaults) {
-          // Non-interactive mode: build options from CLI args
-          const template = (opts.template as SetupTemplate) ?? 'full';
-          const runtime = (opts.runtime as Runtime) ?? 'node';
-          const packageManager = (opts.pm as PackageManager) ?? 'npm';
-
-          // Determine bundler from runtime and explicit CLI flags
-          let bundler: Bundler;
-          if (runtime !== 'node') {
-            bundler = 'none';
-          } else if (opts.vite === true) {
-            bundler = 'vite';
-          } else if (opts.vite === false) {
-            bundler = 'none';
-          } else {
-            bundler = template === 'full' ? 'vite' : 'none';
-          }
-
-          options = {
-            projectName: projectName ?? 'my-bquery-app',
-            template,
-            runtime,
-            packageManager,
-            bundler,
-            tailwind: (opts.tailwind as boolean) ?? false,
-            git: (opts.git as boolean) ?? true,
-            install: (opts.install as boolean) ?? true,
-          };
+          options = resolveNonInteractiveOptions(projectName, opts);
         } else {
           // Interactive mode — guided onboarding
           options = await runPrompts(projectName);
