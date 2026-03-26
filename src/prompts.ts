@@ -3,10 +3,17 @@ import pc from 'picocolors';
 import { getProjectNameValidationError } from './projectName.js';
 import type { SetupOptions, SetupTemplate, Runtime, PackageManager, Bundler } from './types.js';
 
+export class PromptCancelledError extends Error {
+  constructor() {
+    super('Setup cancelled.');
+    this.name = 'PromptCancelledError';
+  }
+}
+
 function assertNotCancelled<T>(value: T | symbol): T {
   if (p.isCancel(value)) {
     p.cancel('Setup cancelled.');
-    process.exit(0);
+    throw new PromptCancelledError();
   }
   return value as T;
 }
@@ -164,7 +171,7 @@ export async function runPrompts(initialName?: string): Promise<SetupOptions> {
 
   if (!confirmed) {
     p.cancel('Setup cancelled.');
-    process.exit(0);
+    throw new PromptCancelledError();
   }
 
   return options;

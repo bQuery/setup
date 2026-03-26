@@ -6,12 +6,13 @@ import fse from 'fs-extra';
 import pc from 'picocolors';
 import { generateProject } from './generators/index.js';
 import { getProjectNameValidationError } from './projectName.js';
-import { runPrompts } from './prompts.js';
+import { PromptCancelledError, runPrompts } from './prompts.js';
 import type { SetupOptions, Bundler, PackageManager, Runtime, SetupTemplate } from './types.js';
 
 const TEMPLATE_CHOICES = ['full', 'minimal'] as const satisfies readonly SetupTemplate[];
 const RUNTIME_CHOICES = ['node', 'bun', 'deno'] as const satisfies readonly Runtime[];
 const PACKAGE_MANAGER_CHOICES = ['npm', 'pnpm', 'yarn', 'bun'] as const satisfies readonly PackageManager[];
+const CHILD_PROCESS_MAX_BUFFER = 100 * 1024 * 1024;
 
 function getInstallCommand(pm: PackageManager): string {
   switch (pm) {
@@ -215,7 +216,7 @@ export function createCli(): Command {
           const gitSpin = p.spinner();
           gitSpin.start('Initializing git repository...');
           try {
-            execSync('git init', { cwd: targetDir, stdio: 'pipe' });
+            execSync('git init', { cwd: targetDir, stdio: 'pipe', maxBuffer: CHILD_PROCESS_MAX_BUFFER });
             gitSpin.stop('Git repository initialized');
           } catch {
             gitSpin.stop(pc.yellow('Could not initialize git repository'));
@@ -228,7 +229,7 @@ export function createCli(): Command {
           const installSpin = p.spinner();
           installSpin.start(`Running ${installCmd}...`);
           try {
-            execSync(installCmd, { cwd: targetDir, stdio: 'pipe', encoding: 'utf8' });
+            execSync(installCmd, { cwd: targetDir, stdio: 'pipe', encoding: 'utf8', maxBuffer: CHILD_PROCESS_MAX_BUFFER });
             installSpin.stop('Dependencies installed');
           } catch (installErr) {
             installSpin.stop(pc.yellow('Could not install dependencies'));
@@ -248,9 +249,13 @@ export function createCli(): Command {
         p.note(nextSteps.map((s) => pc.cyan(s)).join('\n'), 'Next steps');
         p.outro(pc.green(`You're all set! Happy hacking 🚀`));
       } catch (err) {
+        if (err instanceof PromptCancelledError) {
+          return;
+        }
+
         p.cancel('Error creating project');
         console.error(err instanceof Error ? err.message : err);
-        process.exit(1);
+        process.exitCode = 1;
       }
     });
 
