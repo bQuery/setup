@@ -103,13 +103,15 @@ export function resolveNonInteractiveOptions(
     bundler = template === 'full' ? 'vite' : 'none';
   }
 
+  const tailwindEnabled = tailwind === true && (template === 'full' || bundler === 'vite');
+
   return {
     projectName: projectName ?? 'my-bquery-app',
     template,
     runtime,
     packageManager,
     bundler,
-    tailwind: tailwind ?? false,
+    tailwind: tailwindEnabled,
     git: git ?? true,
     install: install ?? true,
   };

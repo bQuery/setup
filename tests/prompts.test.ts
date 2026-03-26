@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SetupOptions } from '../src/types.js';
 
 const promptMocks = vi.hoisted(() => ({
@@ -21,6 +21,7 @@ import { runPrompts } from '../src/prompts.js';
 describe('runPrompts', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(console, 'log').mockImplementation(() => {});
     promptMocks.isCancel.mockReturnValue(false);
     promptMocks.text.mockResolvedValue('valid-app');
     promptMocks.select
@@ -33,6 +34,10 @@ describe('runPrompts', () => {
       .mockResolvedValueOnce(true)
       .mockResolvedValueOnce(true)
       .mockResolvedValueOnce(true);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('validates and prompts even when an initial project name is provided', async () => {

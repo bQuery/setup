@@ -61,6 +61,46 @@ describe('resolveNonInteractiveOptions', () => {
     expect(options.bundler).toBe('none');
     expect(options.tailwind).toBe(false);
   });
+
+  it('clamps explicit tailwind to false when the wizard would not offer it', () => {
+    const options = resolveNonInteractiveOptions(
+      'my-app',
+      {
+        template: 'minimal',
+        runtime: 'node',
+        pm: 'npm',
+        vite: false,
+        tailwind: true,
+      },
+      {
+        vite: 'cli',
+        tailwind: 'cli',
+      },
+    );
+
+    expect(options.bundler).toBe('none');
+    expect(options.tailwind).toBe(false);
+  });
+
+  it('keeps explicit tailwind when the wizard would offer it', () => {
+    const options = resolveNonInteractiveOptions(
+      'my-app',
+      {
+        template: 'minimal',
+        runtime: 'node',
+        pm: 'npm',
+        vite: true,
+        tailwind: true,
+      },
+      {
+        vite: 'cli',
+        tailwind: 'cli',
+      },
+    );
+
+    expect(options.bundler).toBe('vite');
+    expect(options.tailwind).toBe(true);
+  });
 });
 
 describe('ensureTargetDirReady', () => {

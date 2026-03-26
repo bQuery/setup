@@ -26,7 +26,7 @@ export function getProjectNameValidationError(projectName: string): string | und
   }
 
   if (!PROJECT_NAME_RE.test(projectName)) {
-    return 'Project name must be lowercase and use only letters, digits, dots, hyphens, or underscores';
+    return 'Project name must start with a lowercase letter or digit and use only lowercase letters, digits, dots, hyphens, or underscores';
   }
 
   return undefined;

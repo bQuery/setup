@@ -42,13 +42,15 @@ function formatSummary(options: SetupOptions): string {
 }
 
 export async function runPrompts(initialName?: string): Promise<SetupOptions> {
-  console.log();
-  console.log(pc.bold(pc.cyan('  ╔══════════════════════════════════╗')));
-  console.log(pc.bold(pc.cyan('  ║                                  ║')));
-  console.log(pc.bold(pc.cyan('  ║') + '     ⚡ ' + pc.white('bQuery Project Setup') + '  ⚡   ' + pc.cyan('║')));
-  console.log(pc.bold(pc.cyan('  ║                                  ║')));
-  console.log(pc.bold(pc.cyan('  ╚══════════════════════════════════╝')));
-  console.log();
+  if (process.stdout.isTTY) {
+    console.log();
+    console.log(pc.bold(pc.cyan('  ╔══════════════════════════════════╗')));
+    console.log(pc.bold(pc.cyan('  ║                                  ║')));
+    console.log(pc.bold(pc.cyan('  ║') + '     ⚡ ' + pc.white('bQuery Project Setup') + '  ⚡   ' + pc.cyan('║')));
+    console.log(pc.bold(pc.cyan('  ║                                  ║')));
+    console.log(pc.bold(pc.cyan('  ╚══════════════════════════════════╝')));
+    console.log();
+  }
 
   p.intro(pc.inverse(' create-bquery '));
 

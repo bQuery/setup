@@ -14,6 +14,10 @@ describe('getProjectNameValidationError', () => {
     expect(getProjectNameValidationError('@foo')).toContain('lowercase');
   });
 
+  it('rejects names that do not start with a lowercase letter or digit', () => {
+    expect(getProjectNameValidationError('_myapp')).toContain('start with a lowercase letter or digit');
+  });
+
   it('rejects nested paths', () => {
     expect(getProjectNameValidationError('foo/bar')).toContain('single folder name');
   });
