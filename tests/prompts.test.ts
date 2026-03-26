@@ -46,8 +46,10 @@ describe('runPrompts', () => {
       }),
     );
 
-    const promptConfig = promptMocks.text.mock.calls[0]?.[0] as { validate: (value: string) => string | undefined };
-    expect(promptConfig.validate('Invalid-Name')).toContain('lowercase');
+    const projectNamePromptConfig = promptMocks.text.mock.calls[0]?.[0] as {
+      validate: (value: string) => string | undefined;
+    };
+    expect(projectNamePromptConfig.validate('Invalid-Name')).toContain('lowercase');
     expect(options.projectName).toBe('valid-app');
   });
 });

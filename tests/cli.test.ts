@@ -5,16 +5,16 @@ import { afterEach, describe, expect, it } from 'vitest';
 import fse from 'fs-extra';
 import { ensureTargetDirReady, resolveNonInteractiveOptions } from '../src/cli.js';
 
-const tempDirs: string[] = [];
+const tempDirsToCleanup: string[] = [];
 
 async function makeTempDir(): Promise<string> {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'bquery-setup-'));
-  tempDirs.push(dir);
+  tempDirsToCleanup.push(dir);
   return dir;
 }
 
 afterEach(async () => {
-  await Promise.all(tempDirs.splice(0).map((dir) => fse.remove(dir)));
+  await Promise.all(tempDirsToCleanup.splice(0).map((dir) => fse.remove(dir)));
 });
 
 describe('resolveNonInteractiveOptions', () => {
