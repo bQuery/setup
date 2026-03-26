@@ -16,10 +16,10 @@ export function generateReadme(options: SetupOptions): string {
   const scripts: string[] = [];
 
   if (runtime === 'bun') {
-    scripts.push('- `bun run dev` — start dev server with watch');
-    scripts.push('- `bun run start` — run the project');
-    scripts.push('- `bun run build` — build the project');
-    scripts.push('- `bun test` — run tests');
+    scripts.push(`- \`${runCmd} dev\` — start dev server with watch`);
+    scripts.push(`- \`${runCmd} start\` — run the project`);
+    scripts.push(`- \`${runCmd} build\` — build the project`);
+    scripts.push(`- \`${runCmd} test\` — run tests`);
   } else if (runtime === 'deno') {
     scripts.push(`- \`${runCmd} dev\` — start dev server with watch`);
     scripts.push(`- \`${runCmd} start\` — run the project`);
@@ -37,6 +37,10 @@ export function generateReadme(options: SetupOptions): string {
       scripts.push(`- \`${runCmd} start\` — run compiled output`);
       scripts.push(`- \`${runCmd} lint\` — type check`);
     }
+  }
+
+  if (tailwind) {
+    scripts.push(`- \`${runCmd} build:css\` — build Tailwind CSS output`);
   }
 
   const stack = [`- **Runtime**: ${runtime}`, `- **Language**: TypeScript`];

@@ -1,4 +1,4 @@
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import { execSync } from 'child_process';
 import * as path from 'path';
 import * as p from '@clack/prompts';
@@ -8,6 +8,10 @@ import { generateProject } from './generators/index.js';
 import { getProjectNameValidationError } from './projectName.js';
 import { runPrompts } from './prompts.js';
 import type { SetupOptions, Bundler, PackageManager, Runtime, SetupTemplate } from './types.js';
+
+const TEMPLATE_CHOICES = ['full', 'minimal'] as const satisfies readonly SetupTemplate[];
+const RUNTIME_CHOICES = ['node', 'bun', 'deno'] as const satisfies readonly Runtime[];
+const PACKAGE_MANAGER_CHOICES = ['npm', 'pnpm', 'yarn', 'bun'] as const satisfies readonly PackageManager[];
 
 function getInstallCommand(pm: PackageManager): string {
   switch (pm) {
@@ -70,13 +74,16 @@ async function ensureTargetDirReady(projectName: string, force: boolean): Promis
     throw new Error(`Target path already exists and is not a directory: ${projectName}`);
   }
 
-  if (!force) {
-    const existingFiles = await fse.readdir(targetDir);
-    if (existingFiles.length > 0) {
-      throw new Error(
-        `Target directory "${projectName}" already exists and is not empty. Use --force to overwrite it.`,
-      );
-    }
+  if (force) {
+    await fse.emptyDir(targetDir);
+    return targetDir;
+  }
+
+  const existingFiles = await fse.readdir(targetDir);
+  if (existingFiles.length > 0) {
+    throw new Error(
+      `Target directory "${projectName}" already exists and is not empty. Use --force to overwrite it.`,
+    );
   }
 
   return targetDir;
@@ -90,9 +97,13 @@ export function createCli(): Command {
     .description('Set up a local bQuery project')
     .version('0.1.0')
     .argument('[project-name]', 'Name of the project to create')
-    .option('-t, --template <type>', 'Template type: full | minimal', 'full')
-    .option('-r, --runtime <type>', 'Runtime: node | bun | deno', 'node')
-    .option('-p, --pm <type>', 'Package manager: npm | pnpm | yarn | bun', 'npm')
+    .addOption(new Option('-t, --template <type>', 'Template type: full | minimal').choices(TEMPLATE_CHOICES).default('full'))
+    .addOption(new Option('-r, --runtime <type>', 'Runtime: node | bun | deno').choices(RUNTIME_CHOICES).default('node'))
+    .addOption(
+      new Option('-p, --pm <type>', 'Package manager: npm | pnpm | yarn | bun')
+        .choices(PACKAGE_MANAGER_CHOICES)
+        .default('npm'),
+    )
     .option('--vite', 'Include Vite bundler')
     .option('--no-vite', 'Exclude Vite bundler')
     .option('--tailwind', 'Include Tailwind CSS')
@@ -101,7 +112,7 @@ export function createCli(): Command {
     .option('--no-git', 'Skip git initialization')
     .option('--install', 'Run package install after setup', true)
     .option('--no-install', 'Skip package installation')
-    .option('-f, --force', 'Overwrite target directory if it exists and is not empty')
+    .option('-f, --force', 'Overwrite target directory by clearing its existing contents')
     .option('-y, --yes', 'Skip prompts, use defaults')
     .action(async (projectName: string | undefined, opts: Record<string, unknown>) => {
       try {

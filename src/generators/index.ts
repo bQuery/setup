@@ -33,7 +33,7 @@ export async function generateProject(options: SetupOptions, targetDir: string):
   const mainFileName = getMainFileName(options);
   await fse.writeFile(path.join(targetDir, 'src', mainFileName), generateMainFile(options));
 
-  // 7. Vite-specific files (only for full template + vite bundler)
+  // 7. Vite-specific files (for projects using the Vite bundler)
   if (options.bundler === 'vite') {
     await fse.writeFile(path.join(targetDir, 'vite.config.ts'), generateViteConfig());
     await fse.writeFile(path.join(targetDir, 'index.html'), generateHtml(options.projectName));

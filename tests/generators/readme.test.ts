@@ -21,4 +21,18 @@ describe('generateReadme', () => {
     expect(readme).toContain('`pnpm run test`');
     expect(readme).not.toContain('deno task');
   });
+
+  it('documents package-manager scripts for bun projects', () => {
+    const readme = generateReadme({ ...base, runtime: 'bun', bundler: 'none', packageManager: 'npm' });
+    expect(readme).toContain('`npm run dev`');
+    expect(readme).toContain('`npm run start`');
+    expect(readme).toContain('`npm run build`');
+    expect(readme).toContain('`npm run test`');
+    expect(readme).not.toContain('`bun run dev`');
+  });
+
+  it('documents Tailwind CSS build script when enabled', () => {
+    const readme = generateReadme({ ...base, tailwind: true });
+    expect(readme).toContain('`npm run build:css`');
+  });
 });
