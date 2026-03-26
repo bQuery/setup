@@ -18,6 +18,7 @@ describe('generatePackageJson', () => {
     const pkg = generatePackageJson(base);
     expect(pkg.name).toBe('test-app');
     expect(pkg.type).toBe('module');
+    expect(pkg.engines).toEqual({ node: '>=18' });
     const scripts = pkg.scripts as Record<string, string>;
     expect(scripts.dev).toBe('vite');
     expect(scripts.build).toBe('tsc && vite build');
@@ -34,6 +35,7 @@ describe('generatePackageJson', () => {
     const opts: SetupOptions = { ...base, bundler: 'none' };
     const pkg = generatePackageJson(opts);
     expect(pkg.type).toBeUndefined();
+    expect(pkg.engines).toEqual({ node: '>=18' });
     const scripts = pkg.scripts as Record<string, string>;
     expect(scripts.dev).toBe('ts-node src/index.ts');
     expect(scripts.build).toBe('tsc');
@@ -48,6 +50,7 @@ describe('generatePackageJson', () => {
     const opts: SetupOptions = { ...base, runtime: 'bun', packageManager: 'bun', bundler: 'none' };
     const pkg = generatePackageJson(opts);
     expect(pkg.type).toBe('module');
+    expect(pkg.engines).toBeUndefined();
     const scripts = pkg.scripts as Record<string, string>;
     expect(scripts.dev).toBe('bun run --watch src/index.ts');
     expect(scripts.start).toBe('bun run src/index.ts');
@@ -61,6 +64,7 @@ describe('generatePackageJson', () => {
     const opts: SetupOptions = { ...base, runtime: 'deno', bundler: 'none' };
     const pkg = generatePackageJson(opts);
     expect(pkg.type).toBe('module');
+    expect(pkg.engines).toBeUndefined();
     const scripts = pkg.scripts as Record<string, string>;
     expect(scripts.dev).toBe('deno run --watch src/index.ts');
     expect(scripts.start).toBe('deno run src/index.ts');

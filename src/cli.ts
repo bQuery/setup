@@ -56,12 +56,39 @@ function normalizeOptionalBoolean(value: unknown): boolean | undefined {
   return typeof value === 'boolean' ? value : undefined;
 }
 
-export function resolveNonInteractiveOptions(projectName: string | undefined, opts: Record<string, unknown>): SetupOptions {
+type TriStateOptionSource = string | undefined;
+type PathOps = Pick<typeof path, 'parse' | 'resolve' | 'sep'>;
+
+function resolveOptionalCliBoolean(value: unknown, source: TriStateOptionSource): boolean | undefined {
+  return source === 'cli' ? normalizeOptionalBoolean(value) : undefined;
+}
+
+export function isPathInsideBase(baseDir: string, targetDir: string, pathOps: PathOps = path): boolean {
+  const baseAbs = pathOps.resolve(baseDir);
+  const targetAbs = pathOps.resolve(targetDir);
+  const normalizeForComparison = (value: string) => (pathOps.sep === '\\' ? value.toLowerCase() : value);
+
+  const normalizedBase = normalizeForComparison(baseAbs);
+  const normalizedTarget = normalizeForComparison(targetAbs);
+  const baseRoot = normalizeForComparison(pathOps.parse(baseAbs).root);
+  const targetRoot = normalizeForComparison(pathOps.parse(targetAbs).root);
+
+  return (
+    baseRoot === targetRoot &&
+    (normalizedTarget === normalizedBase || normalizedTarget.startsWith(normalizedBase + pathOps.sep))
+  );
+}
+
+export function resolveNonInteractiveOptions(
+  projectName: string | undefined,
+  opts: Record<string, unknown>,
+  optionSources: Partial<Record<'vite' | 'tailwind', TriStateOptionSource>> = {},
+): SetupOptions {
   const template = (opts.template as SetupTemplate) ?? 'full';
   const runtime = (opts.runtime as Runtime) ?? 'node';
   const packageManager = (opts.pm as PackageManager) ?? 'npm';
-  const vite = normalizeOptionalBoolean(opts.vite);
-  const tailwind = normalizeOptionalBoolean(opts.tailwind);
+  const vite = resolveOptionalCliBoolean(opts.vite, optionSources.vite);
+  const tailwind = resolveOptionalCliBoolean(opts.tailwind, optionSources.tailwind);
   const git = normalizeOptionalBoolean(opts.git);
   const install = normalizeOptionalBoolean(opts.install);
 
@@ -94,9 +121,10 @@ export async function ensureTargetDirReady(projectName: string, force: boolean, 
     throw new Error(validationError);
   }
 
-  const targetDir = path.resolve(cwd, projectName);
+  const cwdAbs = path.resolve(cwd);
+  const targetDir = path.resolve(cwdAbs, projectName);
 
-  if (path.relative(cwd, targetDir).startsWith('..')) {
+  if (!isPathInsideBase(cwdAbs, targetDir)) {
     throw new Error('Project directory must be created inside the current working directory');
   }
 
@@ -154,14 +182,17 @@ export function createCli(): Command {
     .option('--no-install', 'Skip package installation')
     .option('-f, --force', 'Overwrite target directory by clearing its existing contents')
     .option('-y, --yes', 'Skip prompts, use defaults')
-    .action(async (projectName: string | undefined, opts: Record<string, unknown>) => {
+    .action(async (projectName: string | undefined, opts: Record<string, unknown>, command: Command) => {
       try {
         let options: SetupOptions;
 
         const useDefaults = opts.yes === true;
 
         if (useDefaults) {
-          options = resolveNonInteractiveOptions(projectName, opts);
+          options = resolveNonInteractiveOptions(projectName, opts, {
+            vite: command.getOptionValueSource('vite'),
+            tailwind: command.getOptionValueSource('tailwind'),
+          });
         } else {
           // Interactive mode — guided onboarding
           options = await runPrompts(projectName);

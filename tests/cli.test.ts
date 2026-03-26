@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import fse from 'fs-extra';
-import { ensureTargetDirReady, resolveNonInteractiveOptions } from '../src/cli.js';
+import { ensureTargetDirReady, isPathInsideBase, resolveNonInteractiveOptions } from '../src/cli.js';
 
 const tempDirsToCleanup: string[] = [];
 
@@ -35,9 +35,31 @@ describe('resolveNonInteractiveOptions', () => {
       runtime: 'node',
       pm: 'npm',
       vite: false,
+    }, {
+      vite: 'cli',
     });
 
     expect(options.bundler).toBe('none');
+  });
+
+  it('ignores default-sourced vite and tailwind values so template defaults still apply', () => {
+    const options = resolveNonInteractiveOptions(
+      'my-app',
+      {
+        template: 'minimal',
+        runtime: 'node',
+        pm: 'npm',
+        vite: true,
+        tailwind: true,
+      },
+      {
+        vite: 'default',
+        tailwind: 'default',
+      },
+    );
+
+    expect(options.bundler).toBe('none');
+    expect(options.tailwind).toBe(false);
   });
 });
 
@@ -67,5 +89,15 @@ describe('ensureTargetDirReady', () => {
 
     expect(readyDir).toBe(targetDir);
     await expect(readdir(targetDir)).resolves.toEqual([]);
+  });
+});
+
+describe('isPathInsideBase', () => {
+  it('accepts nested paths on the same Windows drive', () => {
+    expect(isPathInsideBase('c:\\repo', 'C:\\repo\\my-app', path.win32)).toBe(true);
+  });
+
+  it('rejects paths on a different Windows drive', () => {
+    expect(isPathInsideBase('C:\\repo', 'D:\\repo\\my-app', path.win32)).toBe(false);
   });
 });

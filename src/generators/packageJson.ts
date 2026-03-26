@@ -86,7 +86,9 @@ export function generatePackageJson(options: SetupOptions): Record<string, unkno
     pkg.packageManager = 'pnpm@latest';
   }
 
-  pkg.engines = { node: '>=18' };
+  if (runtime === 'node') {
+    pkg.engines = { node: '>=18' };
+  }
 
   return pkg;
 }
