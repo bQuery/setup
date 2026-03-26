@@ -1,0 +1,81 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { SetupOptions } from '../src/types.js';
+
+const promptMocks = vi.hoisted(() => ({
+  text: vi.fn(),
+  select: vi.fn(),
+  confirm: vi.fn(),
+  intro: vi.fn(),
+  note: vi.fn(),
+  cancel: vi.fn(),
+  isCancel: vi.fn(() => false),
+  log: {
+    info: vi.fn(),
+  },
+}));
+
+vi.mock('@clack/prompts', () => promptMocks);
+
+import { PromptCancelledError, runPrompts } from '../src/prompts.js';
+
+describe('runPrompts', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    promptMocks.isCancel.mockReturnValue(false);
+    promptMocks.text.mockResolvedValue('valid-app');
+    promptMocks.select
+      .mockResolvedValueOnce('full')
+      .mockResolvedValueOnce('node')
+      .mockResolvedValueOnce('npm')
+      .mockResolvedValueOnce('vite');
+    promptMocks.confirm
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('validates and prompts even when an initial project name is provided', async () => {
+    const options = (await runPrompts('Invalid-Name')) as SetupOptions;
+
+    expect(promptMocks.text).toHaveBeenCalledTimes(1);
+    expect(promptMocks.text).toHaveBeenCalledWith(
+      expect.objectContaining({
+        initialValue: 'Invalid-Name',
+        message: 'What is your project name?',
+      }),
+    );
+
+    const projectNamePromptConfig = promptMocks.text.mock.calls[0]?.[0] as {
+      validate: (value: string) => string | undefined;
+    };
+    expect(projectNamePromptConfig.validate('Invalid-Name')).toContain('lowercase');
+    expect(options.projectName).toBe('valid-app');
+  });
+
+  it('throws a dedicated cancellation error when a prompt is cancelled', async () => {
+    const cancelled = Symbol('cancelled');
+    promptMocks.text.mockResolvedValueOnce(cancelled);
+    promptMocks.isCancel.mockImplementation((value) => value === cancelled);
+
+    await expect(runPrompts('my-app')).rejects.toBeInstanceOf(PromptCancelledError);
+    expect(promptMocks.cancel).toHaveBeenCalledWith('Setup cancelled.');
+  });
+
+  it('throws a dedicated cancellation error when the final confirmation is declined', async () => {
+    promptMocks.confirm.mockReset();
+    promptMocks.confirm
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(false);
+
+    await expect(runPrompts('my-app')).rejects.toBeInstanceOf(PromptCancelledError);
+    expect(promptMocks.cancel).toHaveBeenCalledWith('Setup cancelled.');
+  });
+});
