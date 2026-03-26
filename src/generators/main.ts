@@ -1,10 +1,12 @@
 import type { SetupOptions } from '../types.js';
 
 export function generateMainFile(options: SetupOptions): string {
-  const { runtime, bundler } = options;
+  const { runtime, bundler, tailwind } = options;
 
   if (bundler === 'vite') {
-    return `const app = document.querySelector<HTMLDivElement>('#app')!
+    return `${tailwind ? `import './styles.css'
+
+` : ''}const app = document.querySelector<HTMLDivElement>('#app')!
 
 app.innerHTML = \`
   <h1>Hello bQuery!</h1>

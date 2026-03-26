@@ -38,6 +38,11 @@ describe('generateMainFile', () => {
     expect(content).toContain('#app');
   });
 
+  it('vite project imports styles when Tailwind is enabled', () => {
+    const content = generateMainFile({ ...base, tailwind: true });
+    expect(content).toContain(`import './styles.css'`);
+  });
+
   it('node project outputs console.log', () => {
     const content = generateMainFile({ ...base, bundler: 'none' });
     expect(content).toContain('console.log');

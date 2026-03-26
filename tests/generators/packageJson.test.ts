@@ -26,6 +26,7 @@ describe('generatePackageJson', () => {
     expect(scripts.lint).toBe('tsc --noEmit');
     const devDeps = pkg.devDependencies as Record<string, string>;
     expect(devDeps.vite).toBeDefined();
+    expect(devDeps.vitest).toBeDefined();
     expect(devDeps.typescript).toBeDefined();
   });
 
@@ -70,12 +71,19 @@ describe('generatePackageJson', () => {
   it('full template + Tailwind', () => {
     const opts: SetupOptions = { ...base, tailwind: true };
     const pkg = generatePackageJson(opts);
+    expect(pkg.type).toBe('module');
     const scripts = pkg.scripts as Record<string, string>;
     expect(scripts['build:css']).toBe('tailwindcss -i src/styles.css -o dist/styles.css');
     const devDeps = pkg.devDependencies as Record<string, string>;
     expect(devDeps.tailwindcss).toBeDefined();
     expect(devDeps.autoprefixer).toBeDefined();
     expect(devDeps.postcss).toBeDefined();
+  });
+
+  it('node without Vite uses ESM when Tailwind is enabled', () => {
+    const opts: SetupOptions = { ...base, bundler: 'none', tailwind: true };
+    const pkg = generatePackageJson(opts);
+    expect(pkg.type).toBe('module');
   });
 
   it('minimal template + Node', () => {

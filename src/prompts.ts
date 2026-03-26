@@ -1,5 +1,6 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
+import { getProjectNameValidationError } from './projectName.js';
 import type { SetupOptions, SetupTemplate, Runtime, PackageManager, Bundler } from './types.js';
 
 function assertNotCancelled<T>(value: T | symbol): T {
@@ -58,12 +59,7 @@ export async function runPrompts(initialName?: string): Promise<SetupOptions> {
         await p.text({
           message: 'What is your project name?',
           placeholder: 'my-bquery-app',
-          validate: (v) => {
-            if (v.length === 0) return 'Project name is required';
-            if (!/^[a-z0-9@][a-z0-9._\-/@]*$/i.test(v))
-              return 'Name must start with a letter, digit, or @ and only contain letters, digits, dots, hyphens, underscores, slashes, or @';
-            return undefined;
-          },
+          validate: (v) => getProjectNameValidationError(v),
         }),
       );
 

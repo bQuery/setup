@@ -2,4 +2,12 @@
 import { createCli } from './cli.js';
 
 const program = createCli();
-program.parse();
+
+async function main(): Promise<void> {
+  await program.parseAsync();
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

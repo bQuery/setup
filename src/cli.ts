@@ -2,8 +2,10 @@ import { Command } from 'commander';
 import { execSync } from 'child_process';
 import * as path from 'path';
 import * as p from '@clack/prompts';
+import fse from 'fs-extra';
 import pc from 'picocolors';
 import { generateProject } from './generators/index.js';
+import { getProjectNameValidationError } from './projectName.js';
 import { runPrompts } from './prompts.js';
 import type { SetupOptions, Bundler, PackageManager, Runtime, SetupTemplate } from './types.js';
 
@@ -33,6 +35,53 @@ function getDevCommand(pm: PackageManager): string {
   }
 }
 
+function getCommandFailureDetails(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return String(error);
+  }
+
+  const outputError = error as Error & { stdout?: string | Buffer; stderr?: string | Buffer };
+  const details = [outputError.stderr, outputError.stdout]
+    .map((value) => (typeof value === 'string' ? value.trim() : value?.toString().trim()))
+    .find((value) => value && value.length > 0);
+
+  return details ?? error.message;
+}
+
+async function ensureTargetDirReady(projectName: string, force: boolean): Promise<string> {
+  const validationError = getProjectNameValidationError(projectName);
+  if (validationError) {
+    throw new Error(validationError);
+  }
+
+  const cwd = process.cwd();
+  const targetDir = path.resolve(cwd, projectName);
+
+  if (path.relative(cwd, targetDir).startsWith('..')) {
+    throw new Error('Project directory must be created inside the current working directory');
+  }
+
+  if (!(await fse.pathExists(targetDir))) {
+    return targetDir;
+  }
+
+  const stat = await fse.stat(targetDir);
+  if (!stat.isDirectory()) {
+    throw new Error(`Target path already exists and is not a directory: ${projectName}`);
+  }
+
+  if (!force) {
+    const existingFiles = await fse.readdir(targetDir);
+    if (existingFiles.length > 0) {
+      throw new Error(
+        `Target directory "${projectName}" already exists and is not empty. Use --force to overwrite it.`,
+      );
+    }
+  }
+
+  return targetDir;
+}
+
 export function createCli(): Command {
   const program = new Command();
 
@@ -52,6 +101,7 @@ export function createCli(): Command {
     .option('--no-git', 'Skip git initialization')
     .option('--install', 'Run package install after setup', true)
     .option('--no-install', 'Skip package installation')
+    .option('-f, --force', 'Overwrite target directory if it exists and is not empty')
     .option('-y, --yes', 'Skip prompts, use defaults')
     .action(async (projectName: string | undefined, opts: Record<string, unknown>) => {
       try {
@@ -65,9 +115,11 @@ export function createCli(): Command {
           const runtime = (opts.runtime as Runtime) ?? 'node';
           const packageManager = (opts.pm as PackageManager) ?? 'npm';
 
-          // Determine bundler from flags
+          // Determine bundler from runtime and explicit CLI flags
           let bundler: Bundler;
-          if (opts.vite === true) {
+          if (runtime !== 'node') {
+            bundler = 'none';
+          } else if (opts.vite === true) {
             bundler = 'vite';
           } else if (opts.vite === false) {
             bundler = 'none';
@@ -90,7 +142,7 @@ export function createCli(): Command {
           options = await runPrompts(projectName);
         }
 
-        const targetDir = path.resolve(process.cwd(), options.projectName);
+        const targetDir = await ensureTargetDirReady(options.projectName, opts.force === true);
 
         // Generate project with spinner
         const spin = p.spinner();
@@ -118,12 +170,11 @@ export function createCli(): Command {
           const installSpin = p.spinner();
           installSpin.start(`Running ${installCmd}...`);
           try {
-            execSync(installCmd, { cwd: targetDir, stdio: 'pipe' });
+            execSync(installCmd, { cwd: targetDir, stdio: 'pipe', encoding: 'utf8' });
             installSpin.stop('Dependencies installed');
           } catch (installErr) {
             installSpin.stop(pc.yellow('Could not install dependencies'));
-            const msg = installErr instanceof Error ? installErr.message : String(installErr);
-            p.log.warn(msg);
+            p.log.warn(getCommandFailureDetails(installErr));
             p.log.info('You can install dependencies manually after setup.');
           }
         }
@@ -140,7 +191,7 @@ export function createCli(): Command {
         p.outro(pc.green(`You're all set! Happy hacking 🚀`));
       } catch (err) {
         p.cancel('Error creating project');
-        console.error(err);
+        console.error(err instanceof Error ? err.message : err);
         process.exit(1);
       }
     });

@@ -9,8 +9,8 @@ export function generatePackageJson(options: SetupOptions): Record<string, unkno
     description: '',
   };
 
-  // ESM type for Vite or explicit ESM setups
-  if (bundler === 'vite' || runtime === 'bun' || runtime === 'deno') {
+  // ESM type for Vite, explicit ESM runtimes, or Node projects with Tailwind configs
+  if (bundler === 'vite' || runtime === 'bun' || runtime === 'deno' || (runtime === 'node' && tailwind)) {
     pkg.type = 'module';
   }
 
@@ -62,6 +62,7 @@ export function generatePackageJson(options: SetupOptions): Record<string, unkno
   if (runtime === 'node') {
     if (bundler === 'vite') {
       devDependencies.vite = '^6.0.0';
+      devDependencies.vitest = '^2.1.0';
       devDependencies.typescript = '^5.0.0';
       devDependencies['@types/node'] = '^22.0.0';
     } else {
