@@ -6,12 +6,14 @@ export function generateMainFile(options: SetupOptions): string {
   if (bundler === 'vite') {
     return `${tailwind ? `import './styles.css'
 
-` : ''}const app = document.querySelector<HTMLDivElement>('#app')!
+` : ''}import { $ } from '@bquery/bquery/core'
 
-app.innerHTML = \`
-  <h1>Hello bQuery!</h1>
-  <p>Edit <code>src/main.ts</code> to get started.</p>
-\`
+$('#app').html(\`
+  <main>
+    <h1>Hello bQuery!</h1>
+    <p>Edit <code>src/main.ts</code> to get started.</p>
+  </main>
+\`)
 `;
   }
 

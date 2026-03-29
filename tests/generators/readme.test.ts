@@ -35,4 +35,9 @@ describe('generateReadme', () => {
     const readme = generateReadme({ ...base, tailwind: true });
     expect(readme).toContain('`npm run build:css`');
   });
+
+  it('mentions the generated bQuery library version', () => {
+    const readme = generateReadme(base);
+    expect(readme).toContain('@bquery/bquery 1.7.0');
+  });
 });

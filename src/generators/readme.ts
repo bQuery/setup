@@ -43,14 +43,18 @@ export function generateReadme(options: SetupOptions): string {
     scripts.push(`- \`${runCmd} build:css\` — build Tailwind CSS output`);
   }
 
-  const stack = [`- **Runtime**: ${runtime}`, `- **Language**: TypeScript`];
+  const stack = [
+    `- **Runtime**: ${runtime}`,
+    `- **Language**: TypeScript`,
+    `- **Library**: @bquery/bquery 1.7.0`,
+  ];
   if (bundler === 'vite') stack.push('- **Bundler**: Vite');
   if (tailwind) stack.push('- **Styling**: Tailwind CSS');
   stack.push(`- **Package Manager**: ${packageManager}`);
 
   return `# ${projectName}
 
-A bQuery project.
+A bQuery project powered by @bquery/bquery.
 
 ## Installation
 

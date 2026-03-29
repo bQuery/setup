@@ -32,10 +32,10 @@ describe('getMainFileName', () => {
 });
 
 describe('generateMainFile', () => {
-  it('vite project uses document.querySelector', () => {
+  it('vite project uses bQuery core to render into #app', () => {
     const content = generateMainFile(base);
-    expect(content).toContain('document.querySelector');
-    expect(content).toContain('#app');
+    expect(content).toContain(`import { $ } from '@bquery/bquery/core'`);
+    expect(content).toContain(`$('#app').html`);
   });
 
   it('vite project imports styles when Tailwind is enabled', () => {
@@ -47,6 +47,7 @@ describe('generateMainFile', () => {
     const content = generateMainFile({ ...base, bundler: 'none' });
     expect(content).toContain('console.log');
     expect(content).not.toContain('document');
+    expect(content).not.toContain('@bquery/bquery/core');
   });
 
   it('bun project outputs console.log with Bun mention', () => {

@@ -50,7 +50,9 @@ export function generatePackageJson(options: SetupOptions): Record<string, unkno
   pkg.scripts = scripts;
 
   // Dependencies
-  const dependencies: Record<string, string> = {};
+  const dependencies: Record<string, string> = {
+    '@bquery/bquery': '^1.7.0',
+  };
   const devDependencies: Record<string, string> = {};
 
   if (tailwind) {
