@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { BQUERY_PACKAGE_NAME, BQUERY_VERSION_SPEC } from '../../src/generators/bquery.js';
 import { generateReadme } from '../../src/generators/readme.js';
 import type { SetupOptions } from '../../src/types.js';
 
@@ -34,5 +35,10 @@ describe('generateReadme', () => {
   it('documents Tailwind CSS build script when enabled', () => {
     const readme = generateReadme({ ...base, tailwind: true });
     expect(readme).toContain('`npm run build:css`');
+  });
+
+  it('mentions the generated bQuery library version', () => {
+    const readme = generateReadme(base);
+    expect(readme).toContain(`${BQUERY_PACKAGE_NAME} ${BQUERY_VERSION_SPEC}`);
   });
 });

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { BQUERY_PACKAGE_NAME, BQUERY_VERSION_SPEC } from '../../src/generators/bquery.js';
 import { generatePackageJson } from '../../src/generators/packageJson.js';
 import type { SetupOptions } from '../../src/types.js';
 
@@ -26,6 +27,8 @@ describe('generatePackageJson', () => {
     expect(scripts.test).toBe('vitest');
     expect(scripts.lint).toBe('tsc --noEmit');
     const devDeps = pkg.devDependencies as Record<string, string>;
+    const deps = pkg.dependencies as Record<string, string>;
+    expect(deps[BQUERY_PACKAGE_NAME]).toBe(BQUERY_VERSION_SPEC);
     expect(devDeps.vite).toBeDefined();
     expect(devDeps.vitest).toBeDefined();
     expect(devDeps.typescript).toBeDefined();
@@ -42,6 +45,8 @@ describe('generatePackageJson', () => {
     expect(scripts.start).toBe('node dist/index.js');
     expect(scripts.lint).toBe('tsc --noEmit');
     const devDeps = pkg.devDependencies as Record<string, string>;
+    const deps = pkg.dependencies as Record<string, string>;
+    expect(deps[BQUERY_PACKAGE_NAME]).toBe(BQUERY_VERSION_SPEC);
     expect(devDeps['ts-node']).toBeDefined();
     expect(devDeps.typescript).toBeDefined();
   });
@@ -57,6 +62,8 @@ describe('generatePackageJson', () => {
     expect(scripts.build).toBe('bun build src/index.ts --outdir dist');
     expect(scripts.test).toBe('bun test');
     const devDeps = pkg.devDependencies as Record<string, string>;
+    const deps = pkg.dependencies as Record<string, string>;
+    expect(deps[BQUERY_PACKAGE_NAME]).toBe(BQUERY_VERSION_SPEC);
     expect(devDeps['@types/bun']).toBeDefined();
   });
 
@@ -69,6 +76,8 @@ describe('generatePackageJson', () => {
     expect(scripts.dev).toBe('deno run --watch src/index.ts');
     expect(scripts.start).toBe('deno run src/index.ts');
     expect(scripts.test).toBe('deno test');
+    const deps = pkg.dependencies as Record<string, string>;
+    expect(deps[BQUERY_PACKAGE_NAME]).toBe(BQUERY_VERSION_SPEC);
     expect(pkg.devDependencies).toBeUndefined();
   });
 

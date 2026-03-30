@@ -1,4 +1,5 @@
 import type { SetupOptions } from '../types.js';
+import { BQUERY_PACKAGE_NAME, BQUERY_VERSION_SPEC } from './bquery.js';
 
 export function generateReadme(options: SetupOptions): string {
   const { projectName, runtime, packageManager, bundler, tailwind } = options;
@@ -43,14 +44,18 @@ export function generateReadme(options: SetupOptions): string {
     scripts.push(`- \`${runCmd} build:css\` — build Tailwind CSS output`);
   }
 
-  const stack = [`- **Runtime**: ${runtime}`, `- **Language**: TypeScript`];
+  const stack = [
+    `- **Runtime**: ${runtime}`,
+    `- **Language**: TypeScript`,
+    `- **Library**: ${BQUERY_PACKAGE_NAME} ${BQUERY_VERSION_SPEC}`,
+  ];
   if (bundler === 'vite') stack.push('- **Bundler**: Vite');
   if (tailwind) stack.push('- **Styling**: Tailwind CSS');
   stack.push(`- **Package Manager**: ${packageManager}`);
 
   return `# ${projectName}
 
-A bQuery project.
+A bQuery project powered by ${BQUERY_PACKAGE_NAME}.
 
 ## Installation
 

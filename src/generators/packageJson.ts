@@ -1,4 +1,5 @@
 import type { SetupOptions } from '../types.js';
+import { BQUERY_PACKAGE_NAME, BQUERY_VERSION_SPEC } from './bquery.js';
 
 export function generatePackageJson(options: SetupOptions): Record<string, unknown> {
   const { projectName, runtime, bundler, tailwind, packageManager } = options;
@@ -50,7 +51,9 @@ export function generatePackageJson(options: SetupOptions): Record<string, unkno
   pkg.scripts = scripts;
 
   // Dependencies
-  const dependencies: Record<string, string> = {};
+  const dependencies: Record<string, string> = {
+    [BQUERY_PACKAGE_NAME]: BQUERY_VERSION_SPEC,
+  };
   const devDependencies: Record<string, string> = {};
 
   if (tailwind) {
