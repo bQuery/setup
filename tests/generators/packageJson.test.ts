@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { BQUERY_PACKAGE_NAME, BQUERY_VERSION_SPEC } from '../../src/generators/bquery.js';
 import { generatePackageJson } from '../../src/generators/packageJson.js';
 import type { SetupOptions } from '../../src/types.js';
 
@@ -27,7 +28,7 @@ describe('generatePackageJson', () => {
     expect(scripts.lint).toBe('tsc --noEmit');
     const devDeps = pkg.devDependencies as Record<string, string>;
     const deps = pkg.dependencies as Record<string, string>;
-    expect(deps['@bquery/bquery']).toBe('^1.7.0');
+    expect(deps[BQUERY_PACKAGE_NAME]).toBe(BQUERY_VERSION_SPEC);
     expect(devDeps.vite).toBeDefined();
     expect(devDeps.vitest).toBeDefined();
     expect(devDeps.typescript).toBeDefined();
@@ -45,7 +46,7 @@ describe('generatePackageJson', () => {
     expect(scripts.lint).toBe('tsc --noEmit');
     const devDeps = pkg.devDependencies as Record<string, string>;
     const deps = pkg.dependencies as Record<string, string>;
-    expect(deps['@bquery/bquery']).toBe('^1.7.0');
+    expect(deps[BQUERY_PACKAGE_NAME]).toBe(BQUERY_VERSION_SPEC);
     expect(devDeps['ts-node']).toBeDefined();
     expect(devDeps.typescript).toBeDefined();
   });
@@ -62,7 +63,7 @@ describe('generatePackageJson', () => {
     expect(scripts.test).toBe('bun test');
     const devDeps = pkg.devDependencies as Record<string, string>;
     const deps = pkg.dependencies as Record<string, string>;
-    expect(deps['@bquery/bquery']).toBe('^1.7.0');
+    expect(deps[BQUERY_PACKAGE_NAME]).toBe(BQUERY_VERSION_SPEC);
     expect(devDeps['@types/bun']).toBeDefined();
   });
 
@@ -76,7 +77,7 @@ describe('generatePackageJson', () => {
     expect(scripts.start).toBe('deno run src/index.ts');
     expect(scripts.test).toBe('deno test');
     const deps = pkg.dependencies as Record<string, string>;
-    expect(deps['@bquery/bquery']).toBe('^1.7.0');
+    expect(deps[BQUERY_PACKAGE_NAME]).toBe(BQUERY_VERSION_SPEC);
     expect(pkg.devDependencies).toBeUndefined();
   });
 
