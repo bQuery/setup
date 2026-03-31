@@ -69,6 +69,8 @@ You will be asked for:
 8. dependency installation
 9. final confirmation
 
+When you use the interactive wizard, the prompt flow decides the template, runtime, package manager, bundler, Tailwind, Git, and install settings. CLI flags for those options are only applied in non-interactive mode with `--yes`. Without `--yes`, a provided `[project-name]` is used only as the initial project-name value in the prompt.
+
 ### Non-interactive mode
 
 Use `--yes` to skip prompts and rely on CLI flags and defaults:
@@ -113,11 +115,11 @@ create-bquery [project-name] [options]
 | `--vite` | Force Vite bundler on | template-dependent |
 | `--no-vite` | Force Vite bundler off | template-dependent |
 | `--tailwind` | Enable Tailwind CSS when supported | `false` |
-| `--no-tailwind` | Disable Tailwind CSS | `false` |
+| `--no-tailwind` | Disable Tailwind CSS | - |
 | `--git` | Initialize a Git repository | `true` |
-| `--no-git` | Skip Git initialization | `true` |
+| `--no-git` | Skip Git initialization | - |
 | `--install` | Install dependencies after scaffolding | `true` |
-| `--no-install` | Skip dependency installation | `true` |
+| `--no-install` | Skip dependency installation | - |
 | `-f, --force` | Clear an existing target directory before scaffolding | `false` |
 | `-y, --yes` | Skip prompts and use defaults/flags directly | `false` |
 | `--version` | Print the CLI version | - |
@@ -211,6 +213,7 @@ The generated scripts depend on the runtime and whether Vite/Tailwind are enable
 - `preview`
 - `test`
 - `lint`
+- `build:css` when Tailwind is enabled
 
 ### Node.js without Vite
 
@@ -226,12 +229,14 @@ The generated scripts depend on the runtime and whether Vite/Tailwind are enable
 - `start`
 - `build`
 - `test`
+- `build:css` when Tailwind is enabled
 
 ### Deno
 
 - `dev`
 - `start`
 - `test`
+- `build:css` when Tailwind is enabled
 
 ## Project name rules
 
