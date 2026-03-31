@@ -17,7 +17,7 @@ It supports both an interactive setup wizard and a non-interactive mode for repe
 
 ## Requirements
 
-- Node.js **20+** to run this CLI package
+- Node.js **20+** to run this CLI package (generated Node.js projects target Node.js **18+** via their `engines.node` field)
 - npm, pnpm, yarn, or bun available if you want the tool to install dependencies automatically
 - Git installed if you want the tool to initialize a repository
 
@@ -107,13 +107,13 @@ create-bquery [project-name] [options]
 
 ### Options
 
-| Option | Description | Default |
+| Option | Description | When omitted with `--yes` |
 | --- | --- | --- |
 | `-t, --template <type>` | Template type: `full` or `minimal` | `full` |
 | `-r, --runtime <type>` | Runtime: `node`, `bun`, or `deno` | `node` |
 | `-p, --pm <type>` | Package manager: `npm`, `pnpm`, `yarn`, or `bun` | `npm` |
-| `--vite` | Force Vite bundler on | template-dependent |
-| `--no-vite` | Force Vite bundler off | template-dependent |
+| `--vite` | Force Vite bundler on for Node.js projects | `full + node` resolves to Vite |
+| `--no-vite` | Force Vite bundler off | `minimal + node`, `bun`, and `deno` resolve to no bundler |
 | `--tailwind` | Enable Tailwind CSS when supported | `false` |
 | `--no-tailwind` | Disable Tailwind CSS | - |
 | `--git` | Initialize a Git repository | `true` |
@@ -124,6 +124,8 @@ create-bquery [project-name] [options]
 | `-y, --yes` | Skip prompts and use defaults/flags directly | `false` |
 | `--version` | Print the CLI version | - |
 | `--help` | Show help output | - |
+
+Defaults in this table apply to non-interactive mode with `--yes`. Without `--yes`, the interactive prompt flow asks you to choose these values instead.
 
 ## Configuration behavior
 
@@ -200,43 +202,45 @@ Depending on the selected options, it may also include:
 ### Entry file by setup
 
 - Vite projects use `src/main.ts`
-- Non-Vite projects use `src/index.ts`
+- All other setups use `src/index.ts`
 
 ## Generated project scripts
 
-The generated scripts depend on the runtime and whether Vite/Tailwind are enabled.
+The generated `package.json` scripts depend on the runtime and whether Vite/Tailwind are enabled.
 
 ### Node.js + Vite
 
-- `dev`
-- `build`
-- `preview`
-- `test`
-- `lint`
-- `build:css` when Tailwind is enabled
+- `dev` — runs `vite`
+- `build` — runs `tsc && vite build`
+- `preview` — runs `vite preview`
+- `test` — runs `vitest`
+- `lint` — runs `tsc --noEmit`
+- `build:css` — runs `tailwindcss -i src/styles.css -o dist/styles.css` when Tailwind is enabled
 
 ### Node.js without Vite
 
-- `dev`
-- `build`
-- `start`
-- `lint`
-- `build:css` when Tailwind is enabled
+- `dev` — runs `ts-node src/index.ts` (or `ts-node --esm src/index.ts` when Tailwind is enabled)
+- `build` — runs `tsc`
+- `start` — runs `node dist/index.js`
+- `lint` — runs `tsc --noEmit`
+- `build:css` — runs `tailwindcss -i src/styles.css -o dist/styles.css` when Tailwind is enabled
 
 ### Bun
 
-- `dev`
-- `start`
-- `build`
-- `test`
-- `build:css` when Tailwind is enabled
+- `dev` — runs `bun run --watch src/index.ts`
+- `start` — runs `bun run src/index.ts`
+- `build` — runs `bun build src/index.ts --outdir dist`
+- `test` — runs `bun test`
+- `build:css` — runs `tailwindcss -i src/styles.css -o dist/styles.css` when Tailwind is enabled
 
 ### Deno
 
-- `dev`
-- `start`
-- `test`
-- `build:css` when Tailwind is enabled
+- `dev` — runs `deno run --watch src/index.ts`
+- `start` — runs `deno run src/index.ts`
+- `test` — runs `deno test`
+- `build:css` — runs `tailwindcss -i src/styles.css -o dist/styles.css` when Tailwind is enabled
+
+Deno projects do not include a `build` script.
 
 ## Project name rules
 
