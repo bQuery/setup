@@ -199,6 +199,12 @@ Depending on the selected options, it may also include:
 - `postcss.config.js`
 - `src/styles.css`
 
+Vite scaffolds also align with the current `@bquery/template` starter and include:
+
+- `@bquery/template` `1.0.0` starter alignment
+- `@bquery/bquery` `^1.9.0`
+- `@bquery/ui` `^1.9.0`
+
 ### Entry file by setup
 
 - Vite projects use `src/main.ts`

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { BQUERY_PACKAGE_NAME, BQUERY_VERSION_SPEC } from '../../src/generators/bquery.js';
+import {
+  BQUERY_PACKAGE_NAME,
+  BQUERY_TEMPLATE_PACKAGE_NAME,
+  BQUERY_TEMPLATE_VERSION,
+  BQUERY_UI_PACKAGE_NAME,
+  BQUERY_UI_VERSION_SPEC,
+  BQUERY_VERSION_SPEC,
+} from '../../src/generators/bquery.js';
 import { generateReadme } from '../../src/generators/readme.js';
 import type { SetupOptions } from '../../src/types.js';
 
@@ -40,5 +47,13 @@ describe('generateReadme', () => {
   it('mentions the generated bQuery library version', () => {
     const readme = generateReadme(base);
     expect(readme).toContain(`${BQUERY_PACKAGE_NAME} ${BQUERY_VERSION_SPEC}`);
+    expect(readme).toContain(`${BQUERY_UI_PACKAGE_NAME} ${BQUERY_UI_VERSION_SPEC}`);
+    expect(readme).toContain(`${BQUERY_TEMPLATE_PACKAGE_NAME} ${BQUERY_TEMPLATE_VERSION}`);
+  });
+
+  it('does not mention the template starter for non-vite projects', () => {
+    const readme = generateReadme({ ...base, bundler: 'none' });
+    expect(readme).not.toContain(BQUERY_UI_PACKAGE_NAME);
+    expect(readme).not.toContain(BQUERY_TEMPLATE_PACKAGE_NAME);
   });
 });

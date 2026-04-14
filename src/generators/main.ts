@@ -6,7 +6,8 @@ export function generateMainFile(options: SetupOptions): string {
   if (bundler === 'vite') {
     return `${tailwind ? `import './styles.css'
 
-` : ''}import { $ } from '@bquery/bquery/core'
+` : ''}import '@bquery/ui'
+import { $ } from '@bquery/bquery/core'
 
 $('#app').html(\`
   <main>

@@ -1,5 +1,10 @@
 import type { SetupOptions } from '../types.js';
-import { BQUERY_PACKAGE_NAME, BQUERY_VERSION_SPEC } from './bquery.js';
+import {
+  BQUERY_PACKAGE_NAME,
+  BQUERY_UI_PACKAGE_NAME,
+  BQUERY_UI_VERSION_SPEC,
+  BQUERY_VERSION_SPEC,
+} from './bquery.js';
 
 export function generatePackageJson(options: SetupOptions): Record<string, unknown> {
   const { projectName, runtime, bundler, tailwind, packageManager } = options;
@@ -54,6 +59,11 @@ export function generatePackageJson(options: SetupOptions): Record<string, unkno
   const dependencies: Record<string, string> = {
     [BQUERY_PACKAGE_NAME]: BQUERY_VERSION_SPEC,
   };
+
+  if (bundler === 'vite') {
+    dependencies[BQUERY_UI_PACKAGE_NAME] = BQUERY_UI_VERSION_SPEC;
+  }
+
   const devDependencies: Record<string, string> = {};
 
   if (tailwind) {

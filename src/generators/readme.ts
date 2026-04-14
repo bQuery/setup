@@ -1,5 +1,12 @@
 import type { SetupOptions } from '../types.js';
-import { BQUERY_PACKAGE_NAME, BQUERY_VERSION_SPEC } from './bquery.js';
+import {
+  BQUERY_PACKAGE_NAME,
+  BQUERY_TEMPLATE_PACKAGE_NAME,
+  BQUERY_TEMPLATE_VERSION,
+  BQUERY_UI_PACKAGE_NAME,
+  BQUERY_UI_VERSION_SPEC,
+  BQUERY_VERSION_SPEC,
+} from './bquery.js';
 
 export function generateReadme(options: SetupOptions): string {
   const { projectName, runtime, packageManager, bundler, tailwind } = options;
@@ -49,6 +56,10 @@ export function generateReadme(options: SetupOptions): string {
     `- **Language**: TypeScript`,
     `- **Library**: ${BQUERY_PACKAGE_NAME} ${BQUERY_VERSION_SPEC}`,
   ];
+  if (bundler === 'vite') {
+    stack.push(`- **UI**: ${BQUERY_UI_PACKAGE_NAME} ${BQUERY_UI_VERSION_SPEC}`);
+    stack.push(`- **Starter alignment**: ${BQUERY_TEMPLATE_PACKAGE_NAME} ${BQUERY_TEMPLATE_VERSION}`);
+  }
   if (bundler === 'vite') stack.push('- **Bundler**: Vite');
   if (tailwind) stack.push('- **Styling**: Tailwind CSS');
   stack.push(`- **Package Manager**: ${packageManager}`);

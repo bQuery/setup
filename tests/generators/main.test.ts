@@ -34,6 +34,7 @@ describe('getMainFileName', () => {
 describe('generateMainFile', () => {
   it('vite project uses bQuery core to render into #app', () => {
     const content = generateMainFile(base);
+    expect(content).toContain(`import '@bquery/ui'`);
     expect(content).toContain(`import { $ } from '@bquery/bquery/core'`);
     expect(content).toContain(`$('#app').html`);
   });
