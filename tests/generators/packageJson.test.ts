@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { BQUERY_PACKAGE_NAME, BQUERY_VERSION_SPEC } from '../../src/generators/bquery.js';
+import {
+  BQUERY_PACKAGE_NAME,
+  BQUERY_UI_PACKAGE_NAME,
+  BQUERY_UI_VERSION_SPEC,
+  BQUERY_VERSION_SPEC,
+} from '../../src/generators/bquery.js';
 import { generatePackageJson } from '../../src/generators/packageJson.js';
 import type { SetupOptions } from '../../src/types.js';
 
@@ -29,6 +34,7 @@ describe('generatePackageJson', () => {
     const devDeps = pkg.devDependencies as Record<string, string>;
     const deps = pkg.dependencies as Record<string, string>;
     expect(deps[BQUERY_PACKAGE_NAME]).toBe(BQUERY_VERSION_SPEC);
+    expect(deps[BQUERY_UI_PACKAGE_NAME]).toBe(BQUERY_UI_VERSION_SPEC);
     expect(devDeps.vite).toBeDefined();
     expect(devDeps.vitest).toBeDefined();
     expect(devDeps.typescript).toBeDefined();
@@ -47,6 +53,7 @@ describe('generatePackageJson', () => {
     const devDeps = pkg.devDependencies as Record<string, string>;
     const deps = pkg.dependencies as Record<string, string>;
     expect(deps[BQUERY_PACKAGE_NAME]).toBe(BQUERY_VERSION_SPEC);
+    expect(deps[BQUERY_UI_PACKAGE_NAME]).toBeUndefined();
     expect(devDeps['ts-node']).toBeDefined();
     expect(devDeps.typescript).toBeDefined();
   });
@@ -64,6 +71,7 @@ describe('generatePackageJson', () => {
     const devDeps = pkg.devDependencies as Record<string, string>;
     const deps = pkg.dependencies as Record<string, string>;
     expect(deps[BQUERY_PACKAGE_NAME]).toBe(BQUERY_VERSION_SPEC);
+    expect(deps[BQUERY_UI_PACKAGE_NAME]).toBeUndefined();
     expect(devDeps['@types/bun']).toBeDefined();
   });
 
@@ -108,6 +116,8 @@ describe('generatePackageJson', () => {
     expect(scripts.dev).toBe('ts-node src/index.ts');
     expect(scripts.build).toBe('tsc');
     expect(scripts.start).toBe('node dist/index.js');
+    const deps = pkg.dependencies as Record<string, string>;
+    expect(deps[BQUERY_UI_PACKAGE_NAME]).toBeUndefined();
   });
 
   it('pnpm package manager', () => {
